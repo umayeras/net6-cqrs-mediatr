@@ -1,1 +1,3 @@
 # net6-cqrs-mediatr
+
+.Net6 project with using MediatR and FluentValidation and MediatR pipelines...
