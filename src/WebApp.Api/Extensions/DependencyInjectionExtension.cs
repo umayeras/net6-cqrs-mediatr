@@ -20,6 +20,7 @@ namespace WebApp.Api.Extensions
             services.AddMediatR(typeof(GetSampleByIdHandler).GetTypeInfo().Assembly);
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             services.AddTransient(typeof(IRequestExceptionHandler<,,>), typeof(ExceptionHandlingBehavior<,,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
             services.AddScoped(typeof(IReadOnlyRepository<>), typeof(ReadOnlyRepository<>));
             services.AddScoped(typeof(IWritableRepository<>), typeof(WritableRepository<>));

@@ -8,6 +8,7 @@ builder.Services.AddDbContext(configuration);
 builder.Services.AddDependencyResolvers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Logging.AddJsonConsole();
 
 var app = builder.Build();
 
