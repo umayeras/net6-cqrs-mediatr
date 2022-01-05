@@ -4,86 +4,85 @@ using System.Linq.Expressions;
 using WebApp.Data.DbContexts;
 using WebApp.Data.Repositories.Abstract;
 
-namespace WebApp.Data.Repositories
+namespace WebApp.Data.Repositories;
+
+public class WritableRepository<T> : IReadOnlyRepository<T>, IWritableRepository<T> where T : class
 {
-    public class WritableRepository<T> : IReadOnlyRepository<T>, IWritableRepository<T> where T : class
+    private readonly WritableDbContext context;
+    private readonly DbSet<T> dbSet;
+
+    public WritableRepository(WritableDbContext context)
     {
-        private readonly WritableDbContext context;
-        private readonly DbSet<T> dbSet;
+        this.context = context ?? throw new ArgumentException(null, nameof(context));
+        dbSet = this.context.Set<T>();
+    }
 
-        public WritableRepository(WritableDbContext context)
+    public IQueryable<T> GetAll()
+    {
+        return dbSet;
+    }
+
+    public async Task<IReadOnlyList<T>> GetAsync()
+    {
+        return await dbSet.ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<T>> GetAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await dbSet.Where(predicate).ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<T>> GetAsync(Expression<Func<T, bool>>? predicate,
+        Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
+        bool? tracking = false)
+    {
+        IQueryable<T> query = dbSet;
+        if (tracking == false)
         {
-            this.context = context ?? throw new ArgumentException(null, nameof(context));
-            dbSet = this.context.Set<T>();
+            query = query.AsNoTracking();
         }
 
-        public IQueryable<T> GetAll()
+        if (includes != null)
         {
-            return dbSet;
+            query = includes(query);
         }
 
-        public async Task<IReadOnlyList<T>> GetAsync()
+        if (predicate != null)
         {
-            return await dbSet.ToListAsync();
+            query = query.Where(predicate);
         }
 
-        public async Task<IReadOnlyList<T>> GetAsync(Expression<Func<T, bool>> predicate)
+        if (orderBy != null)
         {
-            return await dbSet.Where(predicate).ToListAsync();
+            return await orderBy(query).ToListAsync();
         }
 
-        public async Task<IReadOnlyList<T>> GetAsync(Expression<Func<T, bool>>? predicate,
-            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy,
-            Func<IQueryable<T>, IIncludableQueryable<T, object>>? includes = null,
-            bool? tracking = false)
-        {
-            IQueryable<T> query = dbSet;
-            if (tracking == false)
-            {
-                query = query.AsNoTracking();
-            }
+        return await query.ToListAsync();
+    }
 
-            if (includes != null)
-            {
-                query = includes(query);
-            }
+    public async Task<T> GetSingleAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await dbSet.SingleOrDefaultAsync(predicate);
+    }
 
-            if (predicate != null)
-            {
-                query = query.Where(predicate);
-            }
+    public async Task<T> AddAsync(T entity)
+    {
+        await dbSet.AddAsync(entity);
+        await context.SaveChangesAsync();
 
-            if (orderBy != null)
-            {
-                return await orderBy(query).ToListAsync();
-            }
+        return entity;
+    }
 
-            return await query.ToListAsync();
-        }
+    public async Task UpdateAsync(T entity)
+    {
+        context.Entry(entity).State = EntityState.Modified;
+        await context.SaveChangesAsync();
+    }
 
-        public async Task<T> GetSingleAsync(Expression<Func<T, bool>> predicate)
-        {
-            return await dbSet.SingleOrDefaultAsync(predicate);
-        }
-
-        public async Task<T> AddAsync(T entity)
-        {
-            await dbSet.AddAsync(entity);
-            await context.SaveChangesAsync();
-
-            return entity;
-        }
-
-        public async Task UpdateAsync(T entity)
-        {
-            context.Entry(entity).State = EntityState.Modified;
-            await context.SaveChangesAsync();
-        }
-
-        public async Task DeleteAsync(T entity)
-        {
-            dbSet.Remove(entity);
-            await context.SaveChangesAsync();
-        }
+    public async Task DeleteAsync(T entity)
+    {
+        dbSet.Remove(entity);
+        await context.SaveChangesAsync();
     }
 }

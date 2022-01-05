@@ -4,45 +4,44 @@ using MediatR;
 using WebApp.Business.Models;
 using WebApp.Business.Responses;
 
-namespace WebApp.Business.Behaviors
+namespace WebApp.Business.Behaviors;
+
+public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
+    where TResponse : ServiceResponse, new()
 {
-    public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-        where TRequest : IRequest<TResponse>
-        where TResponse : ServiceResponse, new()
+    private readonly IEnumerable<IValidator<TRequest>> validators;
+
+    public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
     {
-        private readonly IEnumerable<IValidator<TRequest>> validators;
+        this.validators = validators;
+    }
 
-        public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
+    public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+    {
+        if (!validators.Any())
         {
-            this.validators = validators;
+            return await next.Invoke();
         }
 
-        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+        var context = new ValidationContext<TRequest>(request);
+        var results = await Task.WhenAll(validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+        var failures = results.SelectMany(r => r.Errors).Where(f => f != null).ToList();
+
+        if (!failures.Any())
         {
-            if (!validators.Any())
-            {
-                return await next.Invoke();
-            }
-
-            var context = new ValidationContext<TRequest>(request);
-            var results = await Task.WhenAll(validators.Select(v => v.ValidateAsync(context, cancellationToken)));
-            var failures = results.SelectMany(r => r.Errors).Where(f => f != null).ToList();
-
-            if (!failures.Any())
-            {
-                return await next.Invoke();
-            }
-
-            var response = CreateValidationErrorResponse(failures);
-
-            return await Task.FromResult(response as TResponse);
+            return await next.Invoke();
         }
 
-        private ValidationErrorResponse CreateValidationErrorResponse(IEnumerable<ValidationFailure> failures)
-        {
-            var errors = failures.Select(failure => new ValidationError(failure.PropertyName, failure.ErrorMessage)).ToList();
+        var response = CreateValidationErrorResponse(failures);
 
-            return ValidationErrorResponse.Create(errors);
-        }
+        return await Task.FromResult(response as TResponse);
+    }
+
+    private ValidationErrorResponse CreateValidationErrorResponse(IEnumerable<ValidationFailure> failures)
+    {
+        var errors = failures.Select(failure => new ValidationError(failure.PropertyName, failure.ErrorMessage)).ToList();
+
+        return ValidationErrorResponse.Create(errors);
     }
 }

@@ -1,14 +1,13 @@
-namespace WebApp.Data.Entities
-{
-    public class Status
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
+namespace WebApp.Data.Entities;
 
-        public Status(int id, string name)
-        {
-            Id = id;
-            Name = name;
-        }
+public class Status
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+
+    public Status(int id, string name)
+    {
+        Id = id;
+        Name = name;
     }
 }

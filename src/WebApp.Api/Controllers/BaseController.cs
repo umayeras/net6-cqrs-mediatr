@@ -3,22 +3,21 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Business.Responses;
 
-namespace WebApp.Api.Controllers
+namespace WebApp.Api.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class BaseController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class BaseController : ControllerBase
+    protected readonly IMediator Mediator;
+        
+    public BaseController(IMediator mediator)
     {
-        protected readonly IMediator Mediator;
+        Mediator = mediator;
+    }
         
-        public BaseController(IMediator mediator)
-        {
-            Mediator = mediator;
-        }
-        
-        protected IActionResult Error(ServiceResponse response)
-        {
-            return StatusCode((int)HttpStatusCode.InternalServerError, response);
-        }
+    protected IActionResult Error(ServiceResponse response)
+    {
+        return StatusCode((int)HttpStatusCode.InternalServerError, response);
     }
 }

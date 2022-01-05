@@ -1,7 +1,6 @@
-﻿namespace WebApp.Data.Constants
+﻿namespace WebApp.Data.Constants;
+
+public static class ColumnTypeName
 {
-    public static class ColumnTypeName
-    {
-        public const string DateTime2 = "DateTime2";
-    }
+    public const string DateTime2 = "DateTime2";
 }

@@ -1,43 +1,42 @@
 using WebApp.Business.Constants;
 
-namespace WebApp.Business.Responses
+namespace WebApp.Business.Responses;
+
+public class ServiceResponse
 {
-    public class ServiceResponse
+    public bool Success { get; init; }
+    public string? Message { get; init; }
+    public object? Payload { get; init; }
+
+    //TODO: Metot isimleri CreateSuccessResponse olarak falan değiştirelibilir.
+
+    public static ServiceResponse CreateSuccess(string? message)
     {
-        public bool Success { get; init; }
-        public string? Message { get; init; }
-        public object? Payload { get; init; }
+        return CreateServiceResponse(true, message, null);
+    }
 
-        //TODO: Metot isimleri CreateSuccessResponse olarak falan değiştirelibilir.
+    public static ServiceResponse CreateSuccess(string? message, object? data)
+    {
+        return CreateServiceResponse(true, message, data);
+    }
 
-        public static ServiceResponse CreateSuccess(string? message)
+    public static ServiceResponse CreateExceptionError()
+    {
+        return CreateServiceResponse(false, ResponseMessage.ServerError, null);
+    }
+
+    public static ServiceResponse CreateError(string? message)
+    {
+        if (message == string.Empty)
         {
-            return CreateServiceResponse(true, message, null);
+            message = ResponseMessage.ServerError;
         }
 
-        public static ServiceResponse CreateSuccess(string? message, object? data)
-        {
-            return CreateServiceResponse(true, message, data);
-        }
+        return CreateServiceResponse(false, message, null);
+    }
 
-        public static ServiceResponse CreateExceptionError()
-        {
-            return CreateServiceResponse(false, ResponseMessage.ServerError, null);
-        }
-
-        public static ServiceResponse CreateError(string? message)
-        {
-            if (message == string.Empty)
-            {
-                message = ResponseMessage.ServerError;
-            }
-
-            return CreateServiceResponse(false, message, null);
-        }
-
-        private static ServiceResponse CreateServiceResponse(bool success, string? message, object? data)
-        {
-            return new ServiceResponse { Success = success, Message = message, Payload = data };
-        }
+    private static ServiceResponse CreateServiceResponse(bool success, string? message, object? data)
+    {
+        return new ServiceResponse { Success = success, Message = message, Payload = data };
     }
 }

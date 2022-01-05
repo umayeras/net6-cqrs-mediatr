@@ -1,15 +1,14 @@
 using MediatR;
 using WebApp.Business.Responses;
 
-namespace WebApp.Business.Queries
-{
-    public class GetSampleByIdQuery : IRequest<ServiceResponse>
-    {
-        public int Id { get; set; }
+namespace WebApp.Business.Queries;
 
-        public GetSampleByIdQuery(int id)
-        {
-            Id = id;
-        }
+public class GetSampleByIdQuery : IRequest<ServiceResponse>
+{
+    public int Id { get; set; }
+
+    public GetSampleByIdQuery(int id)
+    {
+        Id = id;
     }
 }
