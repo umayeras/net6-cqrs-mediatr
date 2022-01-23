@@ -8,8 +8,6 @@ public class ServiceResponse
     public string? Message { get; init; }
     public object? Payload { get; init; }
 
-    //TODO: Metot isimleri CreateSuccessResponse olarak falan değiştirelibilir.
-
     public static ServiceResponse CreateSuccess(string? message)
     {
         return CreateServiceResponse(true, message, null);

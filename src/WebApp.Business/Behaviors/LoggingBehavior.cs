@@ -1,14 +1,12 @@
-using System;
 using System.Diagnostics;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace WebApp.Business.Behaviors;
 
 public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
 {
     private readonly ILogger<TRequest> logger;
 
@@ -17,10 +15,11 @@ public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, 
         this.logger = logger;
     }
 
-    public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+    public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken,
+        RequestHandlerDelegate<TResponse> next)
     {
         var requestNameWithGuid = $"{request.GetType().Name} [{Guid.NewGuid().ToString()}]";
-            
+
         logger.LogInformation($"[START] {requestNameWithGuid}");
         var stopwatch = Stopwatch.StartNew();
 

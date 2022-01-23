@@ -1,15 +1,18 @@
 using MediatR.Pipeline;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using MediatR;
 using WebApp.Business.Models;
 using WebApp.Business.Responses;
 
 namespace WebApp.Business.Behaviors;
 
-public class ExceptionHandlingBehavior<TRequest, TResponse, TException> : IRequestExceptionHandler<TRequest, TResponse, TException>
-    where TRequest : notnull
+public class
+    ExceptionHandlingBehavior<TRequest, TResponse, TException> : IRequestExceptionHandler<TRequest, TResponse?,
+        TException>
+    where TRequest : IRequest<TResponse>
     where TException : Exception
-    where TResponse : notnull, ServiceResponse
+    where TResponse : ServiceResponse
 {
     private readonly ILogger<ExceptionHandlingBehavior<TRequest, TResponse, TException>> logger;
 
@@ -19,11 +22,12 @@ public class ExceptionHandlingBehavior<TRequest, TResponse, TException> : IReque
         this.logger = logger;
     }
 
-    public Task Handle(TRequest request, TException exception, RequestExceptionHandlerState<TResponse> state, CancellationToken cancellationToken)
+    public Task Handle(TRequest request, TException exception, RequestExceptionHandlerState<TResponse?> state,
+        CancellationToken cancellationToken)
     {
         var error = CreateExceptionError(exception);
 
-        logger.LogError(JsonSerializer.Serialize(error));
+        logger.LogError(exception, JsonSerializer.Serialize(error));
 
         var response = ServiceResponse.CreateExceptionError();
 

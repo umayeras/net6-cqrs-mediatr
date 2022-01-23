@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 using WebApp.Data.DbContexts;
-using WebApp.Data.Entities.Base;
 using WebApp.Data.Repositories.Abstract;
 
 namespace WebApp.Data.Repositories;
